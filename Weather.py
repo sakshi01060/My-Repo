@@ -1,5 +1,4 @@
 import requests
-
 city_name = input("Enter the city:-")
 
 API_Key = "6c95410239msh6901ad4bccd5692p116e14jsn89c74385f4ab"
@@ -15,4 +14,7 @@ params = {"q": city_name}
 response = requests.get(url, headers=headers, params=params)
 
 data = response.json()
-print(data)
+print("City:", data["location"]["name"])
+print("Country:", data["location"]["country"])
+print("Temperature (°C):", data["current"]["temp_c"])
+print("Condition:", data["current"]["condition"]["text"])
