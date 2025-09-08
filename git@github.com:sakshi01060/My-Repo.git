@@ -1,0 +1,43 @@
+import requests
+import base64
+
+# ----------------- USER INPUTS -----------------
+file_path = input("Enter the local Python file path (e.g., weather.py): ")
+repo_owner = input("Enter your GitHub username: ")
+repo_name = input("Enter your repository name: ")
+target_path = input("Enter the path in repo (e.g., scripts/weather.py): ")
+commit_message = input("Enter commit message: ")
+
+# GitHub Personal Access Token (already added)
+GITHUB_TOKEN = "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"
+# ------------------------------------------------
+
+# GitHub API endpoint
+url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{target_path}"
+
+# Read and encode file
+with open(file_path, "rb") as f:
+    content = f.read()
+encoded_content = base64.b64encode(content).decode("utf-8")
+
+# Check if file already exists (to update instead of overwrite)
+response = requests.get(url, headers={"Authorization": f"token {GITHUB_TOKEN}"})
+sha = response.json().get("sha") if response.status_code == 200 else None
+
+# Prepare upload payload
+payload = {
+    "message": commit_message,
+    "content": encoded_content
+}
+if sha:
+    payload["sha"] = sha  # needed if updating existing file
+
+# Upload to GitHub
+res = requests.put(url, headers={"Authorization": f"token {GITHUB_TOKEN}"}, json=payload)
+
+# Show result
+if res.status_code in [200, 201]:
+    print(" File uploaded successfully!")
+    print(" GitHub URL:", res.json()["content"]["html_url"])
+else:
+    print(" Upload failed:", res.json())
