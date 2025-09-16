@@ -1,0 +1,62 @@
+===== ExpenseManagement.feature =====
+Feature: Create and Manage Single Expense
+
+  Scenario: Access the Expenses module
+    Given I am logged in as an employee
+    When I access the Expenses module from the left panel menu
+    Then I should see the Expenses page
+
+  Scenario: Create a valid expense record
+    Given I am on the Expenses page
+    When I fill in the mandatory fields with valid data
+      | Field                | Value                      |
+      | Date                | 2023-08-01                |
+      | Category            | Travel                    |
+      | Currency            | INR                        |
+      | Amount              | 1000                      |
+      | Description         | Business trip to client   |
+    And I upload a valid document
+    And I click on Save as Draft
+    Then the expense record should be saved with a unique Claim-ID
+
+  Scenario: Create an expense record with missing mandatory fields
+    Given I am on the Expenses page
+    When I fill in the mandatory fields with invalid data
+      | Field                | Value                      |
+      | Date                | 2023-08-01                |
+      | Category            |                            |
+      | Currency            | INR                        |
+      | Amount              | -200                      |
+      | Description         | This description is way too long and exceeds the limit of 150 characters. |
+    And I click on Save as Draft
+    Then I should see inline error messages for the invalid fields
+
+  Scenario: Edit an existing expense record
+    Given I have saved an expense record
+    When I click on the Edit icon for that record
+    And I update the fields with valid data
+      | Field                | Value                      |
+      | Amount              | 1200                      |
+      | Description         | Updated business trip      |
+    And I click on Save/Update
+    Then the changes should be saved and reflected in the grid
+
+  Scenario: Delete an existing expense record
+    Given I have saved an expense record
+    When I click on the Delete icon for that record
+    And I confirm the deletion
+    Then the record should be removed from the grid
+
+  Scenario: Submit an expense record
+    Given I have saved an expense record
+    When I select the saved record
+    And I click on Save & Submit
+    Then I should see confirmation "Expense submitted successfully."
+
+  Scenario: Verify pagination functionality
+    Given I am on the Expenses page
+    When I change the page size to 25
+    Then I should see 25 records per page
+    When I navigate to the next page
+    Then I should see the next set of records
+
