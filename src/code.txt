@@ -1,12 +1,206 @@
- 
- { 
-  "ExpensePage.java": "package pages;\n\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\nimport org.openqa.selenium.support.PageFactory;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.openqa.selenium.support.ui.WebDriverWait;\n\npublic class ExpensePage {\n    private WebDriver driver;\n    private WebDriverWait wait;\n\n    @FindBy(id = \"menu_expenses\")\n    private WebElement expensesMenu;\n\n    @FindBy(id = \"date\")\n    private WebElement dateField;\n\n    @FindBy(id = \"category\")\n    private WebElement categoryDropdown;\n\n    @FindBy(id = \"currency\")\n    private WebElement currencyField;\n\n    @FindBy(id = \"amount\")\n    private WebElement amountField;\n\n    @FindBy(id = \"description\")\n    private WebElement descriptionField;\n\n    @FindBy(id = \"upload\")\n    private WebElement uploadButton;\n\n    @FindBy(id = \"saveDraft\")\n    private WebElement saveDraftButton;\n\n    @FindBy(css = \"#errorMessages\")\n    private WebElement errorMessages;\n\n    public ExpensePage(WebDriver driver) {\n        this.driver = driver;\n        this.wait = new WebDriverWait(driver, 10);\n        PageFactory.initElements(driver, this);\n    }\n\n    public void accessExpenses() {\n        wait.until(ExpectedConditions.elementToBeClickable(expensesMenu)).click();\n    }\n\n    public void fillMandatoryFields(String date, String category, String currency, String amount, String description) {\n        dateField.sendKeys(date);\n        categoryDropdown.sendKeys(category);\n        currencyField.clear();\n        currencyField.sendKeys(currency);\n        amountField.sendKeys(amount);\n        descriptionField.sendKeys(description);\n    }\n\n    public void uploadDocument(String filePath) {\n        uploadButton.sendKeys(filePath);\n    }\n\n    public void clickSaveAsDraft() {\n        saveDraftButton.click();\n    }\n\n    public String getErrorMessages() {\n        return errorMessages.getText();\n    }\n}",
-  
-  "ExpenseStepDefinitions.java": "package stepDefinitions;\n\nimport io.cucumber.java.en.Given;\nimport io.cucumber.java.en.When;\nimport io.cucumber.java.en.Then;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.openqa.selenium.firefox.FirefoxDriver;\nimport io.github.bonigarcia.wdm.WebDriverManager;\nimport pages.ExpensePage;\nimport static org.junit.Assert.*;\n\npublic class ExpenseStepDefinitions {\n    private WebDriver driver;\n    private ExpensePage expensePage;\n\n    @Given(\"I am logged in as an employee\")\n    public void login() {\n        WebDriverManager.chromedriver().setup();\n        driver = new ChromeDriver();\n        driver.get(\"http://example.com/login\");\n        // Add login functionality here\n    }\n\n    @When(\"I access the Expenses module from the left panel menu\")\n    public void accessExpensesModule() {\n        expensePage = new ExpensePage(driver);\n        expensePage.accessExpenses();\n    }\n\n    @When(\"I fill in the mandatory fields with valid data\")\n    public void fillValidData(io.cucumber.datatable.DataTable dataTable) {\n        var data = dataTable.asLists(String.class);\n        expensePage.fillMandatoryFields(data.get(1).get(0), data.get(1).get(1), data.get(1).get(2), data.get(1).get(3), data.get(1).get(4));\n    }\n\n    @When(\"I upload a valid document\")\n    public void uploadValidDocument() {\n        expensePage.uploadDocument(\"path/to/document.pdf\");\n    }\n\n    @When(\"I click on Save as Draft\")\n    public void clickSaveAsDraft() {\n        expensePage.clickSaveAsDraft();\n    }\n\n    @Then(\"the expense record should be saved with a unique Claim-ID\")\n    public void verifyClaimID() {\n        // Implement verification logic for Claim-ID\n    }\n\n    @Then(\"I should see inline error messages for the invalid fields\")\n    public void verifyErrorMessages() {\n        String errors = expensePage.getErrorMessages();\n        assertTrue(errors.contains(\"error message\")); // replace with actual error message\n    }\n\n    // Additional step definitions for edit, delete, submit, and pagination scenarios...\n}",
-  
-  "TestRunner.java": "package runners;\n\nimport io.cucumber.junit.Cucumber;\nimport io.cucumber.junit.CucumberOptions;\nimport org.junit.runner.RunWith;\n\n@RunWith(Cucumber.class)\n@CucumberOptions(features = \"src/test/resources/features\", glue = \"stepDefinitions\")\npublic class TestRunner {\n}",
-  
-  "BaseTest.java": "package tests;\n\nimport org.junit.After;\nimport org.junit.Before;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport io.github.bonigarcia.wdm.WebDriverManager;\n\npublic class BaseTest {\n    protected WebDriver driver;\n\n    @Before\n    public void setup() {\n        WebDriverManager.chromedriver().setup();\n        driver = new ChromeDriver();\n        driver.manage().window().maximize();\n    }\n\n    @After\n    public void teardown() {\n        if (driver != null) {\n            driver.quit();\n        }\n    }\n}",
-  
-  "CrossBrowserTest.java": "package tests;\n\nimport org.junit.Test;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.openqa.selenium.firefox.FirefoxDriver;\nimport io.github.bonigarcia.wdm.WebDriverManager;\n\npublic class CrossBrowserTest {\n    @Test\n    public void testExpenseModuleInDifferentBrowsers() {\n        String[] browsers = {\"chrome\", \"firefox\"};\n        for (String browser : browsers) {\n            WebDriver driver;\n            if (browser.equals(\"chrome\")) {\n                WebDriverManager.chromedriver().setup();\n                driver = new ChromeDriver();\n            } else {\n                WebDriverManager.firefoxdriver().setup();\n                driver = new FirefoxDriver();\n            }\n            driver.get(\"http://example.com\");\n            // Add test steps here\n            driver.quit();\n        }\n    }\n}"
+===== ExpensePage.java =====
+package pages;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+public class ExpensePage {
+    private WebDriver driver;
+    private WebDriverWait wait;
+
+    @FindBy(id = "menu_expenses")
+    private WebElement expensesMenu;
+
+    @FindBy(id = "date")
+    private WebElement dateField;
+
+    @FindBy(id = "category")
+    private WebElement categoryDropdown;
+
+    @FindBy(id = "currency")
+    private WebElement currencyField;
+
+    @FindBy(id = "amount")
+    private WebElement amountField;
+
+    @FindBy(id = "description")
+    private WebElement descriptionField;
+
+    @FindBy(id = "upload")
+    private WebElement uploadButton;
+
+    @FindBy(id = "saveDraft")
+    private WebElement saveDraftButton;
+
+    @FindBy(css = "#errorMessages")
+    private WebElement errorMessages;
+
+    public ExpensePage(WebDriver driver) {
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, 10);
+        PageFactory.initElements(driver, this);
+    }
+
+    public void accessExpenses() {
+        wait.until(ExpectedConditions.elementToBeClickable(expensesMenu)).click();
+    }
+
+    public void fillMandatoryFields(String date, String category, String currency, String amount, String description) {
+        dateField.sendKeys(date);
+        categoryDropdown.sendKeys(category);
+        currencyField.clear();
+        currencyField.sendKeys(currency);
+        amountField.sendKeys(amount);
+        descriptionField.sendKeys(description);
+    }
+
+    public void uploadDocument(String filePath) {
+        uploadButton.sendKeys(filePath);
+    }
+
+    public void clickSaveAsDraft() {
+        saveDraftButton.click();
+    }
+
+    public String getErrorMessages() {
+        return errorMessages.getText();
+    }
 }
+
+
+===== ExpenseStepDefinitions.java =====
+package stepDefinitions;
+
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.When;
+import io.cucumber.java.en.Then;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import pages.ExpensePage;
+import static org.junit.Assert.*;
+
+public class ExpenseStepDefinitions {
+    private WebDriver driver;
+    private ExpensePage expensePage;
+
+    @Given("I am logged in as an employee")
+    public void login() {
+        WebDriverManager.chromedriver().setup();
+        driver = new ChromeDriver();
+        driver.get("http://example.com/login");
+        // Add login functionality here
+    }
+
+    @When("I access the Expenses module from the left panel menu")
+    public void accessExpensesModule() {
+        expensePage = new ExpensePage(driver);
+        expensePage.accessExpenses();
+    }
+
+    @When("I fill in the mandatory fields with valid data")
+    public void fillValidData(io.cucumber.datatable.DataTable dataTable) {
+        var data = dataTable.asLists(String.class);
+        expensePage.fillMandatoryFields(data.get(1).get(0), data.get(1).get(1), data.get(1).get(2), data.get(1).get(3), data.get(1).get(4));
+    }
+
+    @When("I upload a valid document")
+    public void uploadValidDocument() {
+        expensePage.uploadDocument("path/to/document.pdf");
+    }
+
+    @When("I click on Save as Draft")
+    public void clickSaveAsDraft() {
+        expensePage.clickSaveAsDraft();
+    }
+
+    @Then("the expense record should be saved with a unique Claim-ID")
+    public void verifyClaimID() {
+        // Implement verification logic for Claim-ID
+    }
+
+    @Then("I should see inline error messages for the invalid fields")
+    public void verifyErrorMessages() {
+        String errors = expensePage.getErrorMessages();
+        assertTrue(errors.contains("error message")); // replace with actual error message
+    }
+
+    // Additional step definitions for edit, delete, submit, and pagination scenarios...
+}
+
+
+===== TestRunner.java =====
+package runners;
+
+import io.cucumber.junit.Cucumber;
+import io.cucumber.junit.CucumberOptions;
+import org.junit.runner.RunWith;
+
+@RunWith(Cucumber.class)
+@CucumberOptions(features = "src/test/resources/features", glue = "stepDefinitions")
+public class TestRunner {
+}
+
+
+===== BaseTest.java =====
+package tests;
+
+import org.junit.After;
+import org.junit.Before;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class BaseTest {
+    protected WebDriver driver;
+
+    @Before
+    public void setup() {
+        WebDriverManager.chromedriver().setup();
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+    }
+
+    @After
+    public void teardown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+}
+
+
+===== CrossBrowserTest.java =====
+package tests;
+
+import org.junit.Test;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class CrossBrowserTest {
+    @Test
+    public void testExpenseModuleInDifferentBrowsers() {
+        String[] browsers = {"chrome", "firefox"};
+        for (String browser : browsers) {
+            WebDriver driver;
+            if (browser.equals("chrome")) {
+                WebDriverManager.chromedriver().setup();
+                driver = new ChromeDriver();
+            } else {
+                WebDriverManager.firefoxdriver().setup();
+                driver = new FirefoxDriver();
+            }
+            driver.get("http://example.com");
+            // Add test steps here
+            driver.quit();
+        }
+    }
+}
+
